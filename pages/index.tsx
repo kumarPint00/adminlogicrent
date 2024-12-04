@@ -9,12 +9,7 @@ import Head from 'next/head';
 
 // Import images from public folder
 import heroBg from '../public/images/hero-bg.jpeg';
-import feature1 from '../public/images/feature1.jpeg';
-import feature2 from '../public/images/feature2.jpeg';
-import feature3 from '../public/images/feature3.jpeg';
-import testimonial1 from '../public/images/testimonial1.jpeg';
-import testimonial2 from '../public/images/testimonial2.jpeg';
-import testimonial3 from '../public/images/testimonial3.jpeg';
+
 
 const LandingPage: React.FC = () => {
   const features = [

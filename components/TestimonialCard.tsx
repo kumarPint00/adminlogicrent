@@ -1,7 +1,6 @@
 // components/TestimonialCard.tsx
 import React from 'react';
 import { Box, Typography, Avatar } from '@mui/material';
-import Image from 'next/image';
 
 interface TestimonialCardProps {
   name: string;
