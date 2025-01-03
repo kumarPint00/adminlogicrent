@@ -1,19 +1,23 @@
 // styles/theme.ts
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
-const getTheme = (mode: 'light' | 'dark') =>
+const getTheme = (mode: 'light' | 'dark'): ThemeOptions =>
   createTheme({
     palette: {
       mode,
       primary: {
-        main: '#1976d2',
+        main: '#1976d2', // Your primary color
       },
       secondary: {
-        main: '#dc004e',
+        main: '#dc004e', // Your secondary color
       },
       background: {
         default: mode === 'light' ? '#f5f5f5' : '#121212',
         paper: mode === 'light' ? '#ffffff' : '#1d1d1d',
+      },
+      text: {
+        primary: mode === 'light' ? '#000000' : '#ffffff',
+        secondary: '#555555',
       },
     },
     typography: {
@@ -24,6 +28,7 @@ const getTheme = (mode: 'light' | 'dark') =>
       h4: {
         fontWeight: 600,
       },
+      // ... other typography settings
     },
     components: {
       MuiButton: {
@@ -41,6 +46,7 @@ const getTheme = (mode: 'light' | 'dark') =>
           },
         },
       },
+      // ... other component customizations
     },
   });
 

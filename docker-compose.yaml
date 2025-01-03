@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  admin-logicrent-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000" # Maps container port 3000 to host port 3000
+    volumes:
+      - .:/app # Mounts the current directory to /app in the container
+      - /app/node_modules # Prevents overwriting node_modules inside the container
+    environment:
+      - NODE_ENV=development
+    # Optional: If you have environment variables, you can include them here
+    # env_file:
+    #   - .env.development

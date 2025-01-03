@@ -1,13 +1,23 @@
-// pages/_app.tsx
+// pages/_app.tsx (Updated)
 import React from 'react';
 import { AppProps } from 'next/app';
-import { ThemeProvider } from '../contexts/ThemeContext';
-import '../styles/globals.css';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from '../styles/theme';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+
+const queryClient = new QueryClient();
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   return (
-    <ThemeProvider>
-      <Component {...pageProps} />
+    <ThemeProvider >
+      <CssBaseline />
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <Component {...pageProps} />
+        </ErrorBoundary>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 };

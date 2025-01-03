@@ -1,0 +1,646 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+/// ------------------------------
+/// Enums
+/// ------------------------------
+
+enum UserRole {
+  SuperAdmin
+  Admin
+  CarProvider
+  Customer
+  TenantAdmin
+}
+
+/// ------------------------------
+/// User Model
+/// ------------------------------
+
+model User {
+  id                 String        @id @default(cuid())
+  username           String?
+  email              String        @unique
+  role               UserRole @default(Customer)
+  fullName           String?
+  contactInformation String?
+  avatar             String?
+  password           String
+  refreshToken       String?
+  tenantId           String?
+  Tenant             Tenant?       @relation(fields: [tenantId], references: [id])
+  Bookings           Booking[]
+  Transactions       Transaction[]
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updatedAt")
+  CarFeature     CarFeature[]
+  BookingDetails BookingDetails[]
+  Report         Report[]
+}
+
+model Tenant {
+  id           String        @id @default(cuid())
+  name         String
+  Users        User[]
+  Cars         Car[]
+  Bookings     Booking[]
+  Transactions Transaction[]
+}
+
+model Booking {
+  id       String   @id @default(cuid())
+  carId    String
+  userId   String
+  tenantId String
+  status   String
+  date     DateTime
+  Car      Car      @relation(fields: [carId], references: [id])
+  User     User     @relation(fields: [userId], references: [id])
+  Tenant   Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model SuperAdmin {
+  id       String @id @default(cuid())
+  username String
+  email    String
+  password String
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+  Report         Report[]
+}
+
+model Admin {
+  id          String   @id @default(cuid())
+  username    String
+  email       String
+  password    String
+  permissions String[]
+  createdById String?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+  Report         Report[]
+}
+
+model CarProvider {
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String
+  phone                 String?
+  address               String?
+  website               String?
+  contactPerson         String?
+  licenseNumber         String?
+  insuranceInformation  String?
+  rating                Float?
+  registrationDate      DateTime? @default(now())
+  lastLogin             DateTime?
+  membershipLevel       String?
+  paymentInformation    String?
+  socialMediaLinks      String[]
+  additionalServices    String?
+  subscriptionIsActive  Boolean   @default(false)
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
+  subscriptionPlan      String?
+  createdById           String?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  Car            Car[]
+  BookingDetails BookingDetails[]
+  Report         Report[]
+}
+
+model Branch {
+  id             String  @id @default(cuid())
+  carProviderId  String
+  location       String?
+  operationTime  String?
+  branchEmail    String?
+  branchWhatsapp String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Car       Car[]
+}
+
+/// ------------------------------
+/// Car Management Models
+/// ------------------------------
+
+model Car {
+  id                   String              @id @default(cuid())
+  brand                String
+  model                String
+  version              String?
+  year                 String
+  colour               String?
+  interiorColor        String?
+  exteriorColor        String?
+  category             String?
+  location             String?
+  vehicleType          String?
+  packageDetails       PackageDetail?      @relation(fields: [packageDetailsId], references: [id])
+  carFeatures          CarFeature?         @relation(fields: [carFeaturesId], references: [id])
+  carImages            CarImage?           @relation(fields: [carImagesId], references: [id])
+  ongoingOfferBanner   OngoingOfferBanner? @relation(fields: [ongoingOfferBannerId], references: [id])
+  carProvider          CarProvider         @relation(fields: [carProviderId], references: [id])
+  branch               Branch?             @relation(fields: [branchId], references: [id])
+  featuredCar          Boolean             @default(false)
+  status               String              @default("inactive")
+  services             String?
+  fuelType             String?
+  sIprice              String?
+  fIprice              String?
+  description          String?
+  packageDetailsId     String?
+  carFeaturesId        String?
+  carImagesId          String?
+  ongoingOfferBannerId String?
+  carProviderId        String
+  branchId             String?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  tenantId       String
+  Tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  Bookings       Booking[]
+  BookingDetails BookingDetails[]
+  Report         Report[]
+}
+
+model PackageDetail {
+  id                       String   @id @default(cuid())
+  securityDeposit          String?
+  excessClaimAmount        String?
+  creditCard               String?
+  dprice                   String?
+  dnumOFFreeKMs            String?
+  dpriceAfterFreeKMs       String?
+  dfreeCancellation        Boolean? @default(false)
+  dcancellationCharge      String?
+  ddeliveryCharges         String?
+  dminimumDays             String?
+  wprice                   String?
+  wnumOFFreeKMs            String?
+  wpriceAfterFreeKMs       String?
+  wfreeCancellation        Boolean? @default(false)
+  wcancellationCharge      String?
+  wdeliveryCharges         String?
+  m1price                  String?
+  m1numOFFreeKMs           String?
+  m1priceAfterFreeKMs      String?
+  m1freeCancellation       Boolean? @default(false)
+  m1cancellationCharge     String?
+  m1deliveryCharges        String?
+  m3price                  String?
+  m3numOFFreeKMs           String?
+  m3priceAfterFreeKMs      String?
+  m3freeCancellation       Boolean? @default(false)
+  m3cancellationCharge     String?
+  m3deliveryCharges        String?
+  m6price                  String?
+  m6numOFFreeKMs           String?
+  m6priceAfterFreeKMs      String?
+  m6freeCancellation       Boolean? @default(false)
+  m6cancellationCharge     String?
+  m6deliveryCharges        String?
+  m9price                  String?
+  m9numOFFreeKMs           String?
+  m9priceAfterFreeKMs      String?
+  m9freeCancellation       Boolean? @default(false)
+  m9cancellationCharge     String?
+  m9deliveryCharges        String?
+  extraMileageCost         String?
+  cdwInsurancePerDay       String?
+  cdwInsurancePerMonth     String?
+  cdwInsurancePerYear      String?
+  cdwInsurance             String?
+  deliveryAndPickUpCharges String?
+  specialNoteForCustomers  String?
+  paymentMethods           String?
+  onGoingOffer             Boolean  @default(false)
+  regularPriceWeekly       String?
+  regularPriceMonthly      String?
+  offerPriceWeekly         String?
+  offerPriceMonthly        String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Car       Car[]
+}
+
+model CarFeature {
+  id                  String  @id @default(cuid())
+  transmission        String?
+  cruiseControl       Boolean @default(false)
+  engineCapacity      String?
+  luggageBootCapacity String?
+  engineSize          String?
+  bluetooth           Boolean @default(false)
+  aux                 Boolean @default(false)
+  seater              String?
+  userId              String?
+  User                User?   @relation(fields: [userId], references: [id])
+  navigation          Boolean @default(false)
+  parkingSense        Boolean @default(false)
+  appleCarPlay        Boolean @default(false)
+  isoFix              Boolean @default(false)
+  sunRoof             Boolean @default(false)
+  pushButton          Boolean @default(false)
+  lcd                 Boolean @default(false)
+  rearCamera          Boolean @default(false)
+  gccSpecs            Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Car       Car[]
+}
+
+model CarImage {
+  id        String  @id @default(cuid())
+  imageUrl  String?
+  imageType String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Car       Car[]
+}
+
+model OngoingOfferBanner {
+  id               String    @id @default(cuid())
+  offerTitle       String
+  offerDescription String?
+  bannerImage      String?
+  offerExpiryDate  DateTime?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Car       Car[]
+}
+
+model OngoingOffer {
+  id               String    @id @default(cuid())
+  offerTitle       String
+  offerDescription String?
+  bannerImage      String?
+  offerExpiryDate  DateTime?
+  carId            String
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Booking Models                                                                                                                                                                                    
+/// ------------------------------
+
+model BookingDetails {
+  id                   String           @id @default(cuid())
+  carId                String?
+  pickupDate           DateTime?
+  returnDate           DateTime?
+  documents            String[]
+  pickupLocation       String?
+  User                 User?            @relation(fields: [userId], references: [id])
+  superAdminId         String?
+  SuperAdmin           SuperAdmin?      @relation(fields: [superAdminId], references: [id])
+  Admin                Admin?           @relation(fields: [adminId], references: [id])
+  CarProvider          CarProvider?     @relation(fields: [carProviderId], references: [id])
+  OngoingOffer         OngoingOffer?    @relation(fields: [ongoingOfferId], references: [id])
+  ongoingOfferId       String?
+  returnLocation       String?
+  additionalServices   String?
+  insuranceInformation String?
+  damageReport         String?
+  enquiryId            String?
+  adminId              String?
+  carProviderId        String?
+  bookingDates         DateTime[]
+  SubscriptionLog      SubscriptionLog? @relation(fields: [subscriptionLogId], references: [id])
+  subscriptionLogId    String?
+  Car                  Car?             @relation(fields: [carId], references: [id])
+  Promotion            Promotion?       @relation(fields: [promotionId], references: [id])
+  promotionId          String?
+  PromoCode            PromoCode?       @relation(fields: [promoCodeId], references: [id])
+  promoCodeId          String?
+  Document             Document?        @relation(fields: [documentId], references: [id])
+  documentId           String?
+  Invoice              Invoice?         @relation(fields: [invoiceId], references: [id])
+  invoiceId            String?
+  status               String           @default("Pending")
+  paymentDetails       Json?
+  Transaction          Transaction?     @relation(fields: [transactionId], references: [id])
+  transactionId        String?
+  Subscription         Subscription?    @relation(fields: [subscriptionId], references: [id])
+  subscriptionId       String?
+  Review               Review?          @relation(fields: [reviewId], references: [id])
+  reviewId             String?
+  userId               String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Enquiry   Enquiry? @relation(fields: [enquiryId], references: [id])
+}
+
+model BookingHistory {
+  id                     String  @id @default(cuid())
+  bookingDetailsId       String?
+  bookingStatus          String?
+  paymentInformation     String?
+  totalPrice             Float?
+  bookingDuration        Int?
+  feedback               String?
+  rating                 Int?
+  specialRequests        String?
+  cancellationReason     String?
+  promoCode              String?
+  bookingReferenceNumber String?
+  userContactInformation String?
+  packageDetailId        String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  Report    Report[]
+}
+
+model Invoice {
+  id             String  @id @default(cuid())
+  bookingId      String?
+  userId         String?
+  paymentDetails Json?
+  totalAmount    Float?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Transaction Models
+/// ------------------------------
+
+model Transaction {
+  id              String   @id @default(cuid())
+  amount          Float
+  status          String
+  date            DateTime
+  userId          String
+  tenantId        String
+  User            User     @relation(fields: [userId], references: [id])
+  Tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  bookingId       String?
+  paymentMethod   String?
+  transactionDate DateTime @default(now())
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Subscription Models
+/// ------------------------------
+
+model Subscription {
+  id       String   @id @default(cuid())
+  name     String?
+  duration Int?
+  price    Float?
+  features String[]
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+model SubscriptionLog {
+  id             String  @id @default(cuid())
+  subscriptionId String?
+  userId         String?
+  action         String?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Review Model
+/// ------------------------------
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String?
+  carId      String?
+  rating     Float?
+  reviewText String?
+  date       DateTime @default(now())
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Report Model
+/// ------------------------------
+
+model Report {
+  id               String          @id @default(cuid())
+  carId            String?
+  generatedById    String?
+  SuperAdmin       SuperAdmin?     @relation(fields: [superAdminId], references: [id])
+  superAdminId     String?
+  Admin            Admin?          @relation(fields: [adminId], references: [id])
+  adminId          String?
+  CarProvider      CarProvider?    @relation(fields: [carProviderId], references: [id])
+  carProviderId    String?
+  Car              Car?            @relation(fields: [carId], references: [id])
+  User             User?           @relation(fields: [userId], references: [id])
+  userId           String?
+  BookingHistory   BookingHistory? @relation(fields: [bookingHistoryId], references: [id])
+  bookingHistoryId String?
+  reportType       String?
+  parameters       Json?
+  generatedAt      DateTime        @default(now())
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+}
+
+/// ------------------------------
+/// Promotion Models
+/// ------------------------------
+
+model Promotion {
+  id                 String  @id @default(cuid())
+  name               String?
+  type               String?
+  promoCode          String?
+  discountPercentage String?
+  expirationDate     String?
+  terms              String?
+  bannerImage        String?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+model UserPromotion {
+  id            String  @id @default(cuid())
+  userId        String
+  promotionId   String
+  carProviderId String?
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+}
+
+model PromoCode {
+  id                 String    @id @default(cuid())
+  code               String
+  discountPercentage Float?
+  maxUsageLimit      Int?
+  currentUsageCount  Int?      @default(0)
+  isActive           Boolean   @default(false)
+  validFrom          DateTime?
+  validTo            DateTime?
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Notification Model
+/// ------------------------------
+
+model Notification {
+  id               String   @id @default(cuid())
+  recipientId      String?
+  message          String?
+  type             String?
+  status           String   @default("Unread")
+  notificationDate DateTime @default(now())
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+}
+
+/// ------------------------------
+/// Enquiry Model
+/// ------------------------------
+
+model Enquiry {
+  id                   String    @id @default(cuid())
+  name                 String?
+  carName              String?
+  startDate            DateTime?
+  preferContact        String?
+  isNewEnquiry         Boolean   @default(true)
+  isEnquiryClosed      Boolean   @default(false)
+  isEnquiryConverted   Boolean   @default(false)
+  isEnquiryDeleted     Boolean   @default(false)
+  isEnquiryBooked      Boolean   @default(false)
+  isEnquiryFollowUp    Boolean   @default(false)
+  endDate              DateTime?
+  pickUpLoc            String?
+  dropLocation         String?
+  phoneNumber          String?
+  area                 String?
+  message              String?
+  deliveryMode         String?
+  city                 String?
+  email                String?
+  packageType          String?
+  brand                String?
+  model                String?
+  enquiryType          String    @default("website")
+  subscriptionLength   String?
+  budget               String?
+  additionalServices   String[]
+  totalPayment         String?
+  source               String    @default("logicrent.ae")
+  promotionalCode      String?
+  insuranceType        String?
+  currentEnquiryStatus String?
+  enquiryStatus        Boolean   @default(true)
+  bookingCreated       DateTime?
+  bookingUpdated       DateTime?
+  isDeleted            Boolean   @default(false)
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Document Model
+/// ------------------------------
+
+model Document {
+  id           String   @id @default(cuid())
+  name         String?
+  type         String?
+  size         Int?
+  url          String?
+  uploadedById String?
+  uploadedAt   DateTime @default(now())
+
+  createdAt      DateTime         @default(now()) @map("createdAt")
+  updatedAt      DateTime         @updatedAt @map("updatedAt")
+  BookingDetails BookingDetails[]
+}
+
+/// ------------------------------
+/// Contact Message Model
+/// ------------------------------
+
+model ContactMessage {
+  id        String  @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean @default(false)
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+}
+
+/// ------------------------------
+/// AuditLog Model
+/// ------------------------------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  userId    String?
+  model     String
+  recordId  String
+  changes   Json?
+  timestamp DateTime @default(now())
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+}
